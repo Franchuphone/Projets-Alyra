@@ -35,4 +35,18 @@ export default defineConfig({
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
   },
+  test: {
+    solidity: {
+      // blockGasLimit: 300_000_000,
+      fuzz: {
+        runs: 256,
+        maxTestRejects: 65536,
+      },
+      invariant: {
+        runs: 1000,
+        depth: 500,
+        failOnRevert: false,
+      },
+    },
+  },
 });

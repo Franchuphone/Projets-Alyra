@@ -1,57 +1,85 @@
-# Sample Hardhat 3 Project (`mocha` and `ethers`)
+# L'idée de démarrage
 
-This project showcases a Hardhat 3 project using `mocha` for tests and the `ethers` library for Ethereum interactions.
+J'ai essayé de me projeter dans un smart contract vide et son processus de création pour implémenter le TDD.
+J'ai vidé le contract originel et j'ai commencé à écrire les tests (ok c'est plus facile quand on sait le contenu du code à l'avance)
 
-To learn more about Hardhat 3, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3](https://hardhat.org/hardhat3-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+# Le process
 
-## Project Overview
+## 1. Le déploiement
 
-This example project includes:
+Tester les bases du smart contract avant l'utilisation de ses fonctions
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using `mocha` and ethers.js
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+- vérification de la bonne implémentation des héritages
+- vérification des variables d'état
 
-## Usage
+## 2. Les getters
 
-### Running Tests
+Initialisation de getVoter et getOneProposal
+Une liste de voters étant nécessaire pour accéder aux getters (onlyVoter), le test de addVoter est prioritaire.
+Leur utilisation et bon fonctionnement va faciliter le reste des tests
 
-To run all the tests in the project, execute the following command:
+- vérification des informations retournées
+- restriction de la fonction aux votants
+- contrôle de certains edge case
 
-```shell
-npx hardhat test
-```
+## 3. Le Workflow
 
-You can also selectively run the Solidity or `mocha` tests:
+Certains changements de workflow doivent être implémentés en parallèle du processus de vote
 
-```shell
-npx hardhat test solidity
-npx hardhat test mocha
-```
+- vérification du changement correct de status du workflow
+- vérification de l'émission de l'event
+- restriction d'utilisation à owner
+- restriction d'exécution durant le correct status de workflow
+- contrôle des edge case
 
-### Make a deployment to Sepolia
+## 4. Enregistrement des voters
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+Première fonction à coder dû aux restrictions onlyVoter
 
-To run the deployment to a local chain:
+- vérification de l'ajout d´un voter avec les bons arguments : codage et test couplé de getVoter
+- vérification de l'émission de l'event
+- restriction de la fonction à owner
+- restriction au workflow : codage et test couplé de startProposalsRegistering
+- controle des doublons
+- tests étendus
 
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
-```
+## 5. Enregistrement des proposals
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+- vérification de l'ajout correct d'une proposal
+- vérification de l'émission de l'event
+- restriction de la fonction aux voters
+- restriction au workflow
+- contrôle de la validité de la proposition
+- test étendu des fonctionnalités
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
+## 6. Enregistrement des votes
 
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
+- vérification de l'ajout correct d'un vote à une proposition
+- vérification de la modification correcte du statut du voter
+- vérification de l'émission de l'event
+- restriction de la fonction aux voters
+- restriction au workflow
+- contrôle des doubles votes
+- contrôle de la validité du vote
 
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
-```
+## 7. Comptage des votes
 
-After setting the variable, you can run the deployment with the Sepolia network:
+- vérification du gagnant retourné
+- vérification de la modification finale du workflow
+- vérification de l'émission de l'event
+- restriction d'utilisation à owner
+- restriction du workflow
+- test étendu des fonctionnalités
+- test de résistance
 
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
-```
+# Conclusion
+
+J'ai trouvé ma solution très répétitive pour le contrôle des fonctions gérant le workflow.
+J'avoue ne pas avoir entrevu une autre facon de faire pour que cela reste cohérent et lisible.
+
+Je reconnais également l'utilisation de l'IA pour compenser dans les tâches répétitives d'écriture des tests, mais aucune utilisation de cet outil dans la logique sous-jacente.
+La structure de ce md reprend la structure des tests dans le fichier typescript, mais ne représente par leur chronologie d'écriture : l'agencement a été revu pour une meilleure lisibilité générale et une meilleure lecture dans la console.
+
+J'ai ajouté quelques tests en solidity pour essayer le fuzz.
+J'ai voulu comparé la rapidité du test de résistance de tallyVotes en le portant sur solidity, mais je l'ai désactivé avec un vm.skip(true) suite à des soucis de stabilité/crash de VsCode sur mon PC quand le maxProposals dépassait les 10000.
+J'aurai des questions également par rapport à cette portabilité : différence de gasUsed (problème de mon code je suppose), à combien mettre la limite de gas par block/transacion pour un usage réaliste, etc...
