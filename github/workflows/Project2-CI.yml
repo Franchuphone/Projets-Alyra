@@ -1,0 +1,43 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "4.Testing/Projet2/** "
+
+jobs:
+  tests:
+    name: Smart Contract Tests Projet 2
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./4.Testing/Projet2
+    steps:
+      # Récupère le code du dépôt sur le runner GitHub
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Installe Node.js (dernière version 22.x disponible)
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      # Met en cache node_modules pour accélérer les runs suivants
+      # La clé change si package-lock.json change, ce qui invalide le cache
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: sous-dossier/node_modules
+          key: node_modules-${{ hashFiles('4.Testing/Projet2/package-lock.json') }}
+
+      # Installe les dépendances seulement si le cache est absent
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Lance les tests Hardhat
+      - name: Run Tests
+        run: npx hardhat test

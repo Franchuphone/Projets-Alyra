@@ -44,18 +44,7 @@ contract VotingTest is Test {
     //                ADDVOTER                  //
     //////////////////////////////////////////////
 
-    /// @notice Toute adresse non enregistrée ne peut pas voter
-    function testFuzz_unregisteredCannotVote(address stranger) public {
-        _addFourProposalsAndStartVoting();
-        vm.assume(stranger != voter1);
-        vm.assume(stranger != voter2);
-        vm.assume(stranger != voter3);
-        vm.prank(stranger);
-        vm.expectRevert("You're not a voter");
-        voting.setVote(1);
-    }
-
-    /// @notice Double registration doit toujours revert
+    /// @notice DOUBLE REGISTRATION ALWAYS REVERT
     function testFuzz_doubleRegistrationReverts(address addr) public {
         vm.assume(addr != address(0));
         vm.startPrank(owner);
@@ -69,17 +58,18 @@ contract VotingTest is Test {
     //                  SETVOTE                   //
     ////////////////////////////////////////////////
 
-    /// @notice Un proposalId hors bornes doit toujours revert
-    function testFuzz_voteOutOfBoundsReverts(uint256 proposalId) public {
+    /// @notice ANY ADDRESSES NON REGISTERED CAN'T VOTE
+    function testFuzz_unregisteredCannotVote(address stranger) public {
         _addFourProposalsAndStartVoting();
-        // 4 proposals + GENESIS = index 0..4
-        vm.assume(proposalId > 4);
-        vm.prank(voter1);
-        vm.expectRevert("Proposal not found");
-        voting.setVote(proposalId);
+        vm.assume(stranger != voter1);
+        vm.assume(stranger != voter2);
+        vm.assume(stranger != voter3);
+        vm.prank(stranger);
+        vm.expectRevert("You're not a voter");
+        voting.setVote(1);
     }
 
-    /// @notice Un voter enregistré peut voter pour n'importe quel index valide et son état est mis à jour correctement
+    /// @notice A REGISTERED VOTER CAN VOTE FOR ANY PROPOSAL ID AND HIS STATE IS CORRECTLY UPDATED
     function testFuzz_validVoteSucceeds(uint256 proposalId) public {
         _addFourProposalsAndStartVoting();
         proposalId = bound(proposalId, 0, 3); // borne dans la plage valide
@@ -91,11 +81,22 @@ contract VotingTest is Test {
         assertEq(v.votedProposalId, proposalId);
     }
 
+    /// @notice A VOTE FOR AN OUT OF BOND PROPOSAL ID ALWAYS REVERTS
+    function testFuzz_voteOutOfBoundsReverts(uint256 proposalId) public {
+        _addFourProposalsAndStartVoting();
+        // 4 proposals + GENESIS = index 0..4
+        vm.assume(proposalId > 4);
+        vm.prank(voter1);
+        vm.expectRevert("Proposal not found");
+        voting.setVote(proposalId);
+    }
+
+
     ////////////////////////////////////////////////
     //                TALLYVOTES                  //
     ////////////////////////////////////////////////
 
-    /// @notice Le gagnant a toujours >= votes que les autres
+    /// @notice WINNER PROPOSAL ALWAYS HAVE SUP OR EQUAL VOTES THAN OTHERS PROPOSALS 
     function testFuzz_tallyPicksHighestVoteCount(
         uint8 v1Vote,
         uint8 v2Vote,
@@ -125,7 +126,7 @@ contract VotingTest is Test {
         vm.stopPrank();
     }
 
-    /// @notice Resistant au DOS out of gas
+    /// @notice CRASH TEST ON INCREMENTED NUMBER OF PROPOSALS
     function test_tallyVotesResistanceOnScalingProposals() public {
         vm.skip(true);
         uint256 step = 500;

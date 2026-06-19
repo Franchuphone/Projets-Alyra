@@ -27,13 +27,14 @@ describe("Voting Contract", function () {
     VotesTallied,
   }
 
+  ///// SET UP TO TEST PROPOSAL PHASE /////
   async function AddThreeVotersAndStartsProposalRegistration() {
     await votingContract.connect(owner).addVoter(voter1.address);
     await votingContract.connect(owner).addVoter(voter2.address);
     await votingContract.connect(owner).addVoter(voter3.address);
     await votingContract.connect(owner).startProposalsRegistering();
   }
-
+  ///// SET UP TO TEST VOTING PHASE   /////
   async function AddFourProposalsAndStartsVotingSession() {
     await AddThreeVotersAndStartsProposalRegistration();
     await votingContract.connect(voter1).addProposal("Proposal A");
@@ -43,7 +44,7 @@ describe("Voting Contract", function () {
     await votingContract.connect(owner).endProposalsRegistering();
     await votingContract.connect(owner).startVotingSession();
   }
-
+  ///// SET UP TO TEST TALLY PHASE    /////
   async function fullSetup() {
     await AddFourProposalsAndStartsVotingSession();
     await votingContract.connect(voter1).setVote(1);
@@ -114,7 +115,7 @@ describe("Voting Contract", function () {
     });
 
     it("Should revert getOneProposal on non existing id", async function () {
-      // Seul GENESIS existe à l'index 0
+      // ONLY GENESIS EXISTS AT INDEX 0
       await expect(
         votingContract.connect(voter1).getOneProposal(99),
       ).to.be.revert(ethers);
@@ -315,7 +316,7 @@ describe("Voting Contract", function () {
   describe("Voter Registration", function () {
     it("Should store a voter correctly", async function () {
       await votingContract.addVoter(voter1.address);
-      // self-call (onlyVoters)
+      // SELF-CALL (onlyVoters)
       const voter = await votingContract
         .connect(voter1)
         .getVoter(voter1.address);
@@ -340,7 +341,7 @@ describe("Voting Contract", function () {
     });
 
     it("Should revert if workflow status is not RegisteringVoters", async function () {
-      // On doit changer le workflow pour tester cette condition
+      // WORKFLOW NEEDS TO BE CHANGED TO TEST THIS ONE
       await votingContract.connect(owner).startProposalsRegistering();
       await expect(
         votingContract.connect(owner).addVoter(voter1.address),
@@ -544,11 +545,14 @@ describe("Voting Contract", function () {
     });
 
     it("Crash test of tallyVotes on incremented number of proposals", async function () {
+      // PUSH TIMEOUT DURATION TO AVOID BLOCKING EXECUTION
       this.timeout(300_000);
+      // ARBITRARY NUMBERS, CAN BE CHANGED EASILY TO WIDE TESTS
       const step = 500;
       const maxProposals = 10000;
 
       for (let size = step; size <= maxProposals; size += step) {
+        // NEEDS NEW CONTRACT DECLARATION ON EACH LOOP DUE TO WORKFLOW LIMITATIONS
         ({ votingContract, owner } = await setUpSmartContract());
         const sendAsOwner = votingContract.connect(owner);
         await sendAsOwner.addVoter(owner.address);
@@ -561,6 +565,8 @@ describe("Voting Contract", function () {
         await sendAsOwner.startVotingSession();
         await sendAsOwner.setVote(1);
         await sendAsOwner.endVotingSession();
+
+        // CATCHING THE ERROR AVOID TO HAVE THE TEST REJECTED BUT RETURNED THE FAILURE POINT
         try {
           const tx = await sendAsOwner.tallyVotes();
           const receipt = await tx.wait();
