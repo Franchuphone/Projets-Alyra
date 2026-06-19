@@ -84,6 +84,6 @@ J'ai ajouté quelques tests en solidity pour essayer le fuzz.
 J'ai voulu comparé la rapidité du test de résistance de tallyVotes en le portant sur solidity, mais je l'ai désactivé avec un vm.skip(true) suite à des soucis de stabilité/crash de VsCode sur mon PC quand le maxProposals dépassait les 10000.  
 J'aurai des questions également par rapport à cette portabilité : différence de gasUsed (problème de mon code je suppose), à combien mettre la limite de gas par block/transacion pour un usage réaliste, etc...
 
-A posteriori, j'ai ajouté les CI commands vu en live
+A posteriori, j'ai ajouté les CI commands vu en live.
 
 ---
