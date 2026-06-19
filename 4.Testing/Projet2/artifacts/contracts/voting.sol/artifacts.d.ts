@@ -15,7 +15,7 @@ export interface Voting$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/contracts/voting.sol";
-  readonly buildInfoId: "solc-0_8_28-c2f6cb3f86a7cd0de88e96d93ab48bd7504d50c8";
+  readonly buildInfoId: "solc-0_8_28-4e0e876efe6f85c1e1261291fc94d6b42a73c50e";
 };
 
 import "hardhat/types/artifacts";
